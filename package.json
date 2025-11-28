@@ -1,0 +1,55 @@
+{
+  "name": "assitente_erros",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "build": {
+    "appId": "com.devassistant.pro",
+    "productName": "Dev Assistant Pro",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "files": [
+      "package.json",
+      "src/**/*",
+      "public/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      "history.db"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "form-data": "^4.0.5",
+    "multer": "^2.0.2",
+    "openai": "^6.9.1",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2",
+    "pkg": "^5.8.1"
+  }
+}

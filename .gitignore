@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+build/
+dist/
+dist-packager/
+
+# Misc
+.DS_Store
+.env
+.npm
+*.log
+
+# Database
+*.db
+*.sqlite
+config.json
+
+# Local Data Files
+*.xlsx
+*.xls
+*.csv
+test_logs.txt
+teste.txt
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java / Maven
+target/
+java_app/target/
+*.class
+*.jar
+*.war
+*.ear
+.idea/
+*.iml
+.vscode/

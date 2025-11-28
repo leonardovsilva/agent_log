@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente de Erros</title>
+    <!-- Carrega o Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Configuração do Tailwind para usar cores e fontes customizadas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    // Estilo de fonte Inter, comum em designs modernos
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    // Cores para o modo escuro (Dark Mode) inspirado no macOS
+                    colors: {
+                        'mac-bg': '#1e1e1e', // Fundo principal escuro
+                        'mac-card': '#2c2c2c', // Fundo de cards/painéis
+                        'mac-border': '#444444', // Bordas e divisores
+                        'mac-text': '#e0e0e0', // Texto principal CLARO (Ajustado)
+                        'mac-subtext': '#b0b0b0', // Texto secundário e placeholders CLARO (Ajustado)
+                        'mac-label': '#d0d0d0', // Cor das labels para maior visibilidade (Adicionado)
+                        'mac-accent': '#0a84ff', // Azul de destaque sutil (como o azul de seleção do macOS)
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Define a fonte Inter para o corpo e garante que o fundo escuro cubra tudo */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: theme('colors.mac-bg');
+            color: theme('colors.mac-text');
+        }
+
+        /* Estilo para simular a elevação e arredondamento dos elementos macOS */
+        .mac-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cor do placeholder para inputs e textareas */
+        ::placeholder {
+            color: theme('colors.mac-subtext');
+            /* Garante que o placeholder seja mais claro */
+            opacity: 1;
+            /* Garante que a cor não seja semi-transparente por padrão */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- SEÇÃO: Geração de Relatórios Locais -->
+    <div class="p-6 bg-mac-bg rounded-lg mac-shadow border border-mac-border max-w-4xl mx-auto mt-10">
+        <h2 class="text-xl font-semibold mb-4 text-yellow-500">📄 Relatórios e Resumos Locais (Java/Datadog Logs)</h2>
+        <p class="text-mac-subtext mb-4">Analise logs, arquivos de métricas ou dados de teste locais para gerar
+            relatórios de resumo de forma rápida.</p>
+
+        <!-- Opções de Tipo de Relatório -->
+        <div class="mb-4">
+            <label for="report-type" class="block text-sm font-medium mb-2 text-mac-label">Tipo de Relatório:</label>
+            <select id="report-type"
+                class="w-full p-3 rounded-lg bg-mac-card border border-mac-border focus:border-mac-accent focus:ring-1 focus:ring-mac-accent outline-none transition-colors appearance-none text-mac-text">
+                <option value="summary">Resumo de Erros e Latência</option>
+                <option value="coverage">Análise de Cobertura de Testes</option>
+                <option value="performance">Relatório de Performance (Ex: JMeter Logs)</option>
+            </select>
+        </div>
+
+        <!-- Custom Prompt Area -->
+        <div class="mb-4">
+            <label for="custom-prompt" class="block text-sm font-medium mb-2 text-mac-label">Contexto Adicional / Prompt
+                Customizado:</label>
+            <textarea id="custom-prompt" rows="3"
+                class="w-full p-3 rounded-lg bg-mac-card border border-mac-border focus:border-mac-accent focus:ring-1 focus:ring-mac-accent outline-none transition-colors text-mac-text placeholder-mac-subtext"
+                placeholder="Ex: Foque apenas nos erros 500 ou ignore os logs de health check..."></textarea>
+        </div>
+
+        <!-- Área de Upload (ou Colar Conteúdo) -->
+        <div class="mb-6">
+            <label for="local-data" class="block text-sm font-medium mb-2 text-mac-label">Logs/Dados Locais (Upload ou
+                Colar):</label>
+            <div id="drop-zone"
+                class="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-mac-border rounded-lg p-4 cursor-pointer hover:border-mac-accent transition duration-200">
+                <svg class="w-6 h-6 text-mac-subtext" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 16a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v7a4 4 0 01-4 4h-2m-4 0v-4m0 0l-4 4m4-4l4 4">
+                    </path>
+                </svg>
+                <p id="drop-zone-text" class="text-sm text-mac-subtext mt-1">Arraste e solte arquivos aqui, ou clique
+                    para selecionar.</p>
+            </div>
+            <input type="file" class="hidden" id="local-data" multiple accept=".xlsx,.xls,.csv,.txt,.log">
+        </div>
+
+        <!-- Botão de Ação -->
+        <button onclick="gerarRelatorio()"
+            class="w-full bg-yellow-500 hover:bg-yellow-600 text-mac-bg font-semibold py-2 rounded-lg transition duration-200 mac-shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-mac-bg">
+            Gerar Relatório Local
+        </button>
+
+        <!-- Placeholder de Status -->
+        <div id="report-status" class="mt-6 p-4 text-sm bg-mac-card rounded-lg border border-mac-border hidden">
+            <p class="font-bold text-yellow-500">Status:</p>
+            <p class="text-mac-subtext mt-2">Análise em andamento...</p>
+        </div>
+    </div>
+
+    <!-- Rodapé Minimalista -->
+    <footer class="mt-8 pt-4 border-t border-mac-border text-center text-xs text-mac-subtext">
+        © 2025 Dev Assistant | IA Powered Tools
+    </footer>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        // Drag and Drop Logic
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('local-data');
+        const dropZoneText = document.getElementById('drop-zone-text');
+
+        dropZone.addEventListener('click', () => {
+            if (window.javaBridge) {
+                window.javaBridge.chooseFile();
+            } else {
+                fileInput.click();
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-mac-accent');
+            dropZone.classList.add('bg-mac-card');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-mac-accent');
+            dropZone.classList.remove('bg-mac-card');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-mac-accent');
+            dropZone.classList.remove('bg-mac-card');
+
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateDropZoneText(fileInput.files[0].name);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                updateDropZoneText(fileInput.files[0].name);
+            }
+        });
+
+        function updateDropZoneText(fileName) {
+            dropZoneText.textContent = `Arquivo selecionado: ${fileName}`;
+            dropZoneText.classList.add('text-mac-accent');
+        }
+
+        // Called by Java when a file is selected via FileChooser
+        function fileSelected(path) {
+            window.selectedFilePath = path;
+            // Extract filename from path (handles both Windows and Unix separators)
+            const fileName = path.split(/[\\/]/).pop();
+            updateDropZoneText(fileName);
+        }
+
+        async function gerarRelatorio() {
+            const statusDiv = document.getElementById('report-status');
+            const customPrompt = document.getElementById('custom-prompt').value;
+
+            statusDiv.innerHTML = `<p class="font-bold text-yellow-500">Status:</p><p class="text-mac-subtext mt-2">Iniciando análise...</p>`;
+            statusDiv.classList.remove('hidden');
+
+            if (window.javaBridge) {
+                // Java Mode
+                window.javaBridge.analyzeFile(window.selectedFilePath || "", customPrompt);
+            } else {
+                console.error("Java Bridge not found!");
+                statusDiv.innerHTML = `<p class="font-bold text-red-500">Erro:</p><p class="text-mac-subtext mt-2">Ambiente Java não detectado.</p>`;
+            }
+        }
+
+        // Callback from Java
+        function receiveAnalysis(data) {
+            const statusDiv = document.getElementById('report-status');
+            if (data) {
+                renderReport(data);
+            } else {
+                statusDiv.innerHTML = `<p class="font-bold text-red-500">Erro:</p><p class="text-mac-subtext mt-2">Nenhum dado recebido.</p>`;
+            }
+        }
+
+        function receiveError(message) {
+            const statusDiv = document.getElementById('report-status');
+            statusDiv.innerHTML = `<p class="font-bold text-red-500">Erro:</p><p class="text-mac-subtext mt-2">${message}</p>`;
+        }
+
+        function renderReport(data) {
+            const statusDiv = document.getElementById('report-status');
+            // Convert markdown newlines to HTML breaks for display
+            const formattedReport = data.summary.replace(/\n/g, '<br>');
+
+            let chartsHtml = '';
+            if (data.charts && data.charts.length > 0) {
+                chartsHtml = '<div class="grid grid-cols-1 gap-6 mt-6">';
+                data.charts.forEach((chart, index) => {
+                    if (chart.type === 'table') {
+                        // Render Table
+                        const headers = chart.data.headers.map(h => `<th class="px-4 py-2 text-left text-mac-text font-medium border-b border-mac-border">${h}</th>`).join('');
+                        const rows = chart.data.rows.map(row => {
+                            const cells = row.map(cell => `<td class="px-4 py-2 text-mac-subtext border-b border-mac-border">${cell}</td>`).join('');
+                            return `<tr>${cells}</tr>`;
+                        }).join('');
+
+                        chartsHtml += `
+                             <div class="bg-mac-bg p-4 rounded-lg border border-mac-border w-full overflow-x-auto">
+                                 <h3 class="text-lg font-semibold text-mac-text mb-4">${chart.title}</h3>
+                                 <table class="w-full text-sm">
+                                     <thead><tr>${headers}</tr></thead>
+                                     <tbody>${rows}</tbody>
+                                 </table>
+                             </div>
+                         `;
+                    } else {
+                        // Render Chart Container
+                        chartsHtml += `
+                             <div class="bg-mac-bg p-4 rounded-lg border border-mac-border relative" style="height: 300px; width: 100%;">
+                                 <canvas id="chart-${index}"></canvas>
+                             </div>
+                         `;
+                    }
+                });
+                chartsHtml += '</div>';
+            }
+
+            statusDiv.innerHTML = `
+                 <p class="font-bold text-green-500">✅ Relatório Concluído</p>
+                 <div class="text-mac-subtext mt-2 text-sm">${formattedReport}</div>
+                 ${chartsHtml}
+             `;
+
+            // Render Charts (only for non-table types)
+            if (data.charts) {
+                data.charts.forEach((chart, index) => {
+                    if (chart.type !== 'table') {
+                        const ctx = document.getElementById(`chart-${index}`).getContext('2d');
+                        new Chart(ctx, {
+                            type: chart.type,
+                            data: chart.data,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: chart.title,
+                                        color: '#e0e0e0'
+                                    },
+                                    legend: {
+                                        labels: { color: '#b0b0b0' }
+                                    }
+                                },
+                                scales: chart.type === 'line' || chart.type === 'bar' ? {
+                                    y: { ticks: { color: '#b0b0b0' }, grid: { color: '#444' } },
+                                    x: { ticks: { color: '#b0b0b0' }, grid: { color: '#444' } }
+                                } : {}
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
